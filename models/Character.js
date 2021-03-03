@@ -1,7 +1,7 @@
 const mongoose=require('../db/connection')
 
 const traitSchema = new mongoose.Schema({
-    name: String
+    desc: String
 })
 
 const integritySchema = new mongoose.Schema({
@@ -10,7 +10,7 @@ const integritySchema = new mongoose.Schema({
 
 const characterSchema = new mongoose.Schema({
     name: String,
-    traits: [{traitSchema}],
+    traits: [traitSchema],
     profession: String,
     irons: Number,
     hearts: Number,
@@ -21,7 +21,7 @@ const characterSchema = new mongoose.Schema({
     peril: Number,
     inDanger: Boolean,
     condition: String,
-    integrities: [{integritySchema}],
+    integrities: [integritySchema],
     messages: [{type: mongoose.Schema.Types.ObjectId, ref: 'Message'}],
     gameId: {type: mongoose.Schema.Types.ObjectId, ref: 'Game'},
     userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}

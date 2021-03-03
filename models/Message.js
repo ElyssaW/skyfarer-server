@@ -1,7 +1,7 @@
 const mongoose=require('../db/connection')
 
 const rollModSchema = new mongoose.Schema({
-    name: String
+    desc: String
 })
 
 const messageSchema = new mongoose.Schema({

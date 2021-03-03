@@ -2,6 +2,7 @@ const mongoose=require('../db/connection')
 
 const userSchema = new mongoose.Schema({
     username: String,
+    email: String,
     password: String,
     games: [{type: mongoose.Schema.Types.ObjectId, ref: 'Game'}],
     characters: [{type: mongoose.Schema.Types.ObjectId, ref: 'Character'}],
