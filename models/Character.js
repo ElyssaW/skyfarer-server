@@ -16,10 +16,22 @@ const characterSchema = new mongoose.Schema({
     hearts: Number,
     veils: Number,
     mirrors: Number,
-    tenacity: Number,
-    tenacityMax: Number,
-    peril: Number,
-    inDanger: Boolean,
+    tenacity: {
+        type: Number,
+        default: 2
+    },
+    tenacityMax: {
+        type: Number,
+        default: 6
+    },
+    peril: {
+        type: Number,
+        default: 0
+    },
+    inDanger: {
+        type: Boolean,
+        default: false
+    },
     condition: String,
     integrities: [integritySchema],
     messages: [{type: mongoose.Schema.Types.ObjectId, ref: 'Message'}],

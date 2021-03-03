@@ -36,24 +36,19 @@ app.use('/auth', require('./controllers/auth.js'))
 //     })
 // })
 
-let interval;
+let users = {}
 io.on("connection", (socket) => {
-  console.log("New client connected");
-  if (interval) {
-    clearInterval(interval);
-  }
-  interval = setInterval(() => getApiAndEmit(socket), 1000);
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
-    clearInterval(interval);
-  });
-});
+  console.log("New client connected")
+  console.log(socket.handshake)
+  console.log(socket.id)
+  users[socket.handshake.headers.userid] = socket.id
 
-const getApiAndEmit = socket => {
-  const response = new Date();
-  // Emitting a new message. Will be consumed by the client
-  socket.emit("FromAPI", response);
-};
+  console.log('Users: ')
+  console.log(users)
+  socket.on("disconnect", () => {
+    console.log("Client disconnected")
+  })
+})
 
 http.listen(8000, () => {
     console.log('Hello from Port 8000')

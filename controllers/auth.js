@@ -25,7 +25,7 @@ router.post('/signup', (req, res) => {
     .then(hashedPassword => ({
         email: req.body.email,
         password: hashedPassword,
-        name: req.body.name
+        name: req.body.username
     }))
     .then(hashedUser => {
         User.create(hashedUser) 
