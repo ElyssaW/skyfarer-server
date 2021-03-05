@@ -1,8 +1,17 @@
 const Character = require('../models/Character')
+const express = require('express')
+const router = express.Router()
+const axios = require('axios')
 
 // Route to view character
-    // Find character by ID
-    // Send character
+router.get('/view/:id', (req, res) => {
+    console.log('Route hit')
+    Character.findById(req.params.id)
+    .then(foundChar => {
+        console.log(foundChar)
+        res.send(foundChar)
+    })
+})
 
 // Route to view several characters
     // Find characters by id in [array]
@@ -38,3 +47,5 @@ const Character = require('../models/Character')
 // Route to delete character
     // Find by ID
     // Delete
+
+module.exports = router

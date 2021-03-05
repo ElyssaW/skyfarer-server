@@ -23,6 +23,7 @@ app.get('/', (req, res) => {
 })
 
 app.use('/auth', require('./controllers/auth.js'))
+app.use('/character', require('./controllers/character.js'))
 
 // console.log('io')
 // io.on('connection', (socket) => {
@@ -36,19 +37,19 @@ app.use('/auth', require('./controllers/auth.js'))
 //     })
 // })
 
-let users = {}
-io.on("connection", (socket) => {
-  console.log("New client connected")
-  console.log(socket.handshake)
-  console.log(socket.id)
-  users[socket.handshake.headers.userid] = socket.id
+// let users = {}
+// io.on("connection", (socket) => {
+//   console.log("New client connected")
+//   console.log(socket.handshake)
+//   console.log(socket.id)
+//   users[socket.handshake.headers.userid] = socket.id
 
-  console.log('Users: ')
-  console.log(users)
-  socket.on("disconnect", () => {
-    console.log("Client disconnected")
-  })
-})
+//   console.log('Users: ')
+//   console.log(users)
+//   socket.on("disconnect", () => {
+//     console.log("Client disconnected")
+//   })
+// })
 
 http.listen(8000, () => {
     console.log('Hello from Port 8000')

@@ -12,9 +12,11 @@ const messageSchema = new mongoose.Schema({
     rollMinus: [{rollModSchema}],
     tenacityRoll: Number,
     perilRoll: Number,
+    private: Boolean,
     characterId: {type: mongoose.Schema.Types.ObjectId, ref: 'Character'},
     gameId: {type: mongoose.Schema.Types.ObjectId, ref: 'Game'},
-    userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}
+    userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    endUserId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
 })
 
 module.exports = mongoose.model('Message', messageSchema)
