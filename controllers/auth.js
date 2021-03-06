@@ -9,7 +9,7 @@ const User = require('../models/User')
 
 router.post('/login', (req, res) => {
     console.log(req.body.email)
-    User.findOne( {email: req.body.email })
+    User.findOne( {email: req.body.email }).populate('Games').populate('Characters')
     .then(foundUser => {
         console.log(foundUser)
         return createUserToken (req, foundUser)})

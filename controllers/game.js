@@ -13,10 +13,6 @@ router.get('/all', (req, res) => {
     })
 })
 
-// Route to search games
-    // Find by selectors
-    // Send all
-
 // Route to get one game
 router.get('/game/:id', (req, res) => {
     Game.findById(req.params.id)
@@ -64,6 +60,35 @@ router.post('/new', async (req, res) => {
 // Route to edit game
 router.put('/game/edit/:id', (req, res) => {
 
+    console.log('Hit update game route')
+    console.log(req.body)
+
+    // Standardize tags and split into array
+    let tags = req.body.tags.replace(/\s+/g, '').toLowerCase()
+    tags = tags.split(',')
+    
+    // Standardize emails and split into array
+    let userEmails = req.body.users.replace(/\s+/g, '').toLowerCase()
+    userEmails = userEmails.split(',')
+    
+    // Find users by email, and return ID only
+    User.find({
+        email: {$in: userEmails}
+    }, { _id: 1 }).then(foundUsers => {
+        Game.findByIdAndUpdate(req.params.id, {
+            title: req.body.title,
+            desc: req.body.desc,
+            tags: tags,
+            users: foundUsers,
+            gm: req.body.currentUser.id
+        }).then(game => {
+            console.log(game)
+            res.send(game)
+        }).catch(err => {
+            console.log(err)
+            res.send(err)
+        })
+    })
 })
     // name: String,
     // users:  [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],

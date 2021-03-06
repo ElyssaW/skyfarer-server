@@ -7,7 +7,8 @@ const gameSchema = new mongoose.Schema({
     characters:  [{type: mongoose.Schema.Types.ObjectId, ref: 'Character'}],
     tags: [String],
     gm:  {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-    ships: [{type: mongoose.Schema.Types.ObjectId, ref: 'Ship'}]
+    ships: [{type: mongoose.Schema.Types.ObjectId, ref: 'Ship'}],
+    pendingRequests: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}]
 })
 
 module.exports = mongoose.model('Game', gameSchema)

@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema({
     password: String,
     games: [{type: mongoose.Schema.Types.ObjectId, ref: 'Game'}],
     characters: [{type: mongoose.Schema.Types.ObjectId, ref: 'Character'}],
-    messages: [{type: mongoose.Schema.Types.ObjectId, ref: 'Message'}]
+    messages: [{type: mongoose.Schema.Types.ObjectId, ref: 'Message'}],
+    pendingRequests: [{type: mongoose.Schema.Types.ObjectId, ref: 'Game'}]
 })
 
 module.exports = mongoose.model('User', userSchema)
