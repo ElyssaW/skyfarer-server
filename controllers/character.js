@@ -1,7 +1,6 @@
 const Character = require('../models/Character')
 const express = require('express')
 const router = express.Router()
-const axios = require('axios')
 
 // Route to view character
 router.get('/view/:id', (req, res) => {

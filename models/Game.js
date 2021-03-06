@@ -1,7 +1,8 @@
 const mongoose=require('../db/connection')
 
 const gameSchema = new mongoose.Schema({
-    name: String,
+    title: String,
+    desc: String,
     users:  [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     characters:  [{type: mongoose.Schema.Types.ObjectId, ref: 'Character'}],
     tags: [String],

@@ -24,6 +24,7 @@ app.get('/', (req, res) => {
 
 app.use('/auth', require('./controllers/auth.js'))
 app.use('/character', require('./controllers/character.js'))
+app.use('/game', require('./controllers/game.js'))
 
 // console.log('io')
 // io.on('connection', (socket) => {

@@ -21,6 +21,8 @@ router.post('/login', (req, res) => {
 })
 
 router.post('/signup', (req, res) => {
+    console.log('Creating new user')
+    console.log(req.body)
     bcrypt.hash(req.body.password, 10)
     .then(hashedPassword => ({
         email: req.body.email,

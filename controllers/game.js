@@ -1,4 +1,6 @@
 const Game = require('../models/Game')
+const Character = require('../models/Character')
+const User = require('../models/User')
 const express = require('express')
 const router = express.Router()
 
@@ -25,8 +27,38 @@ router.get('/game/:id', (req, res) => {
 })
 
 // Route to create new game
-router.post('/game/new', (req, res) => {
+router.post('/new', async (req, res) => {
 
+    console.log('Hit new game route')
+    console.log(req.body)
+
+    // Standardize tags and split into array
+    let tags = req.body.tags.replace(/\s+/g, '').toLowerCase()
+    tags = tags.split(',')
+
+    // Standardize emails and split into array
+    let userEmails = req.body.users.replace(/\s+/g, '').toLowerCase()
+    userEmails = userEmails.split(',')
+
+    // Find users by email, and return ID only
+    User.find({
+        email: {$in: userEmails}
+    }, { _id: 1 }).then(foundUsers => {
+        
+        // Populate game object
+        Game.create({
+            title: req.body.title,
+            desc: req.body.desc,
+            tags: tags,
+            users: foundUsers,
+            gm: req.body.currentUser.id
+        }).then(newGame => {
+            res.send(newGame)
+        }).catch(err => {
+            console.log('Done fucked ' + err)
+            res.send(err)
+        })
+    })
 })
     // name: String,
     // users:  [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
@@ -52,3 +84,5 @@ router.delete('/game/delete/:id', (req, res) => {
 })
     // Find by ID
     // Delete
+
+module.exports = router
