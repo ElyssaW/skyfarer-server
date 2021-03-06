@@ -5,7 +5,7 @@ const express = require('express')
 const router = express.Router()
 
 // Route to get all games
-router.get('/game/all', (req, res) => {
+router.get('/all', (req, res) => {
     Game.find().then(games => {
         console.log('Showing games..')
         console.log(games)
@@ -44,7 +44,7 @@ router.post('/new', async (req, res) => {
     User.find({
         email: {$in: userEmails}
     }, { _id: 1 }).then(foundUsers => {
-        
+
         // Populate game object
         Game.create({
             title: req.body.title,
@@ -60,12 +60,6 @@ router.post('/new', async (req, res) => {
         })
     })
 })
-    // name: String,
-    // users:  [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
-    // characters:  [{type: mongoose.Schema.Types.ObjectId, ref: 'Character'}],
-    // tags: [String],
-    // gm:  {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-    // ships: [{type: mongoose.Schema.Types.ObjectId, ref: 'Ship'}]
 
 // Route to edit game
 router.put('/game/edit/:id', (req, res) => {
