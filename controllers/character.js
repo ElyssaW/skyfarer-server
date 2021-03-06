@@ -1,5 +1,7 @@
 const Character = require('../models/Character')
 const express = require('express')
+const User = require('../models/User')
+const Game = require('../models/Game')
 const router = express.Router()
 
 // Route to view character
@@ -17,14 +19,40 @@ router.get('/view/:id', (req, res) => {
     // Send characters
 
 // Route to create character
-    // name: String,
-    // traits: [traitSchema],
-    // profession: String,
-    // irons: Number,
-    // hearts: Number,
-    // veils: Number,
-    // mirrors: Number,
-    // integrities: [integritySchema],
+router.post('/new', (req, res) => {
+    console.log('New character route hit')
+    console.log(req.body)
+
+    Character.create({
+        name: req.body.name,
+        traits: req.body.traits,
+        profession: req.body.profession,
+        irons: req.body.irons,
+        hearts: req.body.hearts,
+        veils: req.body.veils,
+        mirrors: req.body.mirrors,
+        integrities: req.body.integrities,
+        publicNotes: req.body.publicNotes,
+        privateNotes: req.body.privateNotes,
+        userId: req.body.userId,
+        gameId: [req.body.gameId]
+    }).then(newCharacter => {
+        User.findByIdAndUpdate(req.body.userId, {
+            $push: { characters: newCharacter.id }
+        }).then(() => {
+            Game.findByIdAndUpdate(req.body.gameId, {
+                $push: { characters: newCharacter.id }
+            }).then(game => {
+                console.log('New character created')
+                console.log(newCharacter)
+                res.send(newCharacter)
+            })
+        })
+    }).catch(err => {
+        console.log('Error creating character: ' + err)
+        res.send(err)
+    })
+})
 
 // Route to update character
     // name: String,

@@ -34,6 +34,8 @@ const characterSchema = new mongoose.Schema({
     },
     condition: String,
     integrities: [integritySchema],
+    publicNotes: String,
+    privateNotes: String,
     messages: [{type: mongoose.Schema.Types.ObjectId, ref: 'Message'}],
     gameId: {type: mongoose.Schema.Types.ObjectId, ref: 'Game'},
     userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}
