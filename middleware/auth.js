@@ -36,12 +36,19 @@ const createUserToken = (req, user) => {
         const payload = {
             id: user._id,
             email: user.email,
-            name:user.name,
-            games: user.games,
-            characters: user.characters
+            name:user.name
         }
         return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 10800 })
     }
+}
+
+const updateUserToken = (user) => {
+    const payload = {
+        id: user._id,
+        email: user.email,
+        name:user.name
+    }
+    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 10800 })
 }
 
 const createNewUserToken = (req, user) => {
@@ -63,4 +70,4 @@ const createNewUserToken = (req, user) => {
 
 const requireToken = passport.authenticate('jwt', { session: false })
 
-module.exports = { createUserToken, createNewUserToken, requireToken }
+module.exports = { createUserToken, updateUserToken, createNewUserToken, requireToken }

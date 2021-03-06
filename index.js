@@ -19,7 +19,7 @@ app.use(cors())
 app.use(express.urlencoded({extended: false}))
 
 app.get('/', (req, res) => {
-    res.send('Hello')
+  res.send('Hello')
 })
 
 app.use('/auth', require('./controllers/auth.js'))

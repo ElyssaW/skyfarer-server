@@ -5,11 +5,20 @@ const passport = require('passport') // For authentication; must be logged in to
 const router = express.Router()
 
 const User = require('../models/User')
+const Game = require('../models/Game')
 
+router.get('/data/:id', (req, res) => {
+    Game.find().then(gamesData => {
+        User.findById(req.params.id).populate('games').populate('characters')
+        .then(currentUser => {
+            res.status(200).json({ gamesData, currentUser })
+        })
+    })
+})
 
 router.post('/login', (req, res) => {
     console.log(req.body.email)
-    User.findOne( {email: req.body.email }).populate('games').populate('characters')
+    User.findOne( {email: req.body.email })
     .then(foundUser => {
         console.log(foundUser)
         return createUserToken (req, foundUser)})

@@ -37,15 +37,16 @@ router.post('/new', (req, res) => {
         userId: req.body.userId,
         gameId: [req.body.gameId]
     }).then(newCharacter => {
-        User.findByIdAndUpdate(req.body.userId, {
+        Game.findByIdAndUpdate(req.body.gameId, {
             $push: { characters: newCharacter.id }
-        }).then(() => {
-            Game.findByIdAndUpdate(req.body.gameId, {
+        }).then(game => {
+            User.findByIdAndUpdate(req.body.userId, {
                 $push: { characters: newCharacter.id }
-            }).then(game => {
+            }).populate('games').populate('characters')
+            .then((updatedUser) => {
                 console.log('New character created')
                 console.log(newCharacter)
-                res.send(newCharacter)
+                res.status(201).json({ newCharacter: newCharacter, updatedUser: updatedUser })
             })
         })
     }).catch(err => {
