@@ -1,4 +1,7 @@
 const express = require('express')
+const Message = require('./models/Message')
+const Game = require('./models/Game')
+const User = require('./models/User')
 let app = express()
 
 const http = require('http').Server(app)
@@ -41,18 +44,44 @@ app.use('/game', require('./controllers/game.js'))
 let users = {}
 io.on("connection", (socket) => {
   console.log("New client connected")
+
+  console.log('Game id')
+  console.log(socket.handshake.query.gameId)
+  const gameId = socket.handshake.query.gameId
+  const userId = socket.handshake.headers.userid
   users[socket.handshake.headers.userid] = socket.id
+
+  socket.join(gameId)
 
   socket.on('newChatMessage', (msg) => {
     console.log('Message sent')
     console.log(msg)
-    io.emit('newChatMessage', msg)
+
+    Message.create({
+      body: msg.body,
+      userId: userId,
+      gameId: gameId
+    }).then(newMsg => {
+      Game.findByIdAndUpdate(gameId, {
+        $push: { messages: newMsg._id }
+      }).then(() => {
+        User.findByIdAndUpdate(userId, {
+          $push: { messages: newMsg._id }
+        }).then(() => {
+          io.in(gameId).emit('newChatMessage', msg)
+        })
+      })
+    }).catch(err => {
+      console.log(err)
+    })
   }) 
 
   console.log('Users: ')
   console.log(users)
   socket.on("disconnect", () => {
     console.log("Client disconnected")
+    socket.leave(gameId)
+    delete users[socket.handshake.headers.userid]
   })
 })
 

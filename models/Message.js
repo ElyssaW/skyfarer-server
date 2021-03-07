@@ -5,7 +5,7 @@ const rollModSchema = new mongoose.Schema({
 })
 
 const messageSchema = new mongoose.Schema({
-    content: String,
+    body: String,
     rollBase: Number,
     rollSecond: Number,
     rollPlus: [{rollModSchema}],
