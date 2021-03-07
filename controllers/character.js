@@ -7,10 +7,12 @@ const router = express.Router()
 // Route to view character
 router.get('/view/:id', (req, res) => {
     console.log('Route hit')
+    console.log(req.params)
+    console.log(req.body)
     Character.findById(req.params.id)
     .then(foundChar => {
         console.log(foundChar)
-        res.send(foundChar)
+        res.status(200).json(foundChar)
     })
 })
 
@@ -56,24 +58,51 @@ router.post('/new', (req, res) => {
 })
 
 // Route to update character
-    // name: String,
-    // traits: [traitSchema],
-    // profession: String,
-    // irons: Number,
-    // tenacity: Number,
-    // maxTenacity: Number,
-    // peril: Number,
-    // hearts: Number,
-    // veils: Number,
-    // mirrors: Number,
-    // condition: String,
-    // inDanger: Boolean
-    // integrities: [integritySchema],
-    // messageId
-    // gameId
+router.put('/edit/:id', (req, res) => {
+    console.log('Updating character')
+    console.log(req.body)
+
+    Character.findByIdAndUpdate(req.params.id, {
+        name: req.body.name,
+        traits: req.body.traits,
+        profession: req.body.profession,
+        irons: req.body.irons,
+        hearts: req.body.hearts,
+        veils: req.body.veils,
+        mirrors: req.body.mirrors,
+        integrities: req.body.integrities,
+        publicNotes: req.body.publicNotes,
+        privateNotes: req.body.privateNotes,
+        gameId: [req.body.gameId]
+    }).then(updatedCharacter => {
+        console.log('Character updated')
+        console.log(updatedCharacter)
+        res.send(201).json(updatedCharacter)
+    })
+})
 
 // Route to delete character
-    // Find by ID
-    // Delete
+router.delete('/delete/:id', (req, res) => {
+    console.log('Deleting character')
+    console.log(req.params.id)
+    Character.findById(req.params.id)
+    .then(foundCharacter => {
+
+        Game.findByIdAndUpdate(foundCharacter.gameId, {
+            '$pull': { characters: foundCharacter.id }
+        }).then(() => {
+
+            User.findByIdAndUpdate(foundCharacter.userId, {
+                '$pull': { characters: foundCharacter.id }
+            }).then(() => {
+
+                Character.findByIdAndDelete(foundCharacter._id)
+                .then(() => {
+                    res.status(200).json('Deleted successfully')
+                })
+            })
+        })
+    })
+})
 
 module.exports = router

@@ -18,11 +18,11 @@ router.get('/data/:id', (req, res) => {
 
 router.post('/login', (req, res) => {
     console.log(req.body.email)
-    User.findOne( {email: req.body.email })
+    User.findOne( {email: req.body.email }).populate('Games').populate('Characters')
     .then(foundUser => {
         console.log(foundUser)
-        return createUserToken (req, foundUser)})
-    .then(token => res.status(201).json( {token} ))
+        return [createUserToken(req, foundUser), foundUser]})
+    .then(([token, foundUser]) => res.status(201).json( {token, foundUser} ))
     .catch( err => {
         console.log( 'ERROR LOGGING IN:', err )
         res.status(401).json( {message: 'Invalid login' })
