@@ -38,19 +38,23 @@ app.use('/game', require('./controllers/game.js'))
 //     })
 // })
 
-// let users = {}
-// io.on("connection", (socket) => {
-//   console.log("New client connected")
-//   console.log(socket.handshake)
-//   console.log(socket.id)
-//   users[socket.handshake.headers.userid] = socket.id
+let users = {}
+io.on("connection", (socket) => {
+  console.log("New client connected")
+  users[socket.handshake.headers.userid] = socket.id
 
-//   console.log('Users: ')
-//   console.log(users)
-//   socket.on("disconnect", () => {
-//     console.log("Client disconnected")
-//   })
-// })
+  socket.on('newChatMessage', (msg) => {
+    console.log('Message sent')
+    console.log(msg)
+    io.emit('newChatMessage', msg)
+  }) 
+
+  console.log('Users: ')
+  console.log(users)
+  socket.on("disconnect", () => {
+    console.log("Client disconnected")
+  })
+})
 
 http.listen(8000, () => {
     console.log('Hello from Port 8000')

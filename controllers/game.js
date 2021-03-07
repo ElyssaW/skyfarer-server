@@ -35,6 +35,9 @@ router.post('/new', async (req, res) => {
     // Standardize emails and split into array
     let userEmails = req.body.users.replace(/\s+/g, '').toLowerCase()
     userEmails = userEmails.split(',')
+    // Include current user's email in the database call, so that they are included in
+    // all following operations
+    userEmails.push(req.body.currentUser.email)
 
     // Find users by email, and return ID only
     User.find({
@@ -47,9 +50,15 @@ router.post('/new', async (req, res) => {
             desc: req.body.desc,
             tags: tags,
             users: foundUsers,
-            gm: req.body.currentUser.id
+            gm: req.body.currentUser._id
         }).then(newGame => {
-            res.send(newGame)
+
+            // If game is successfully created, add its ID to all users
+            User.updateMany({email: {$in: userEmails}}, {
+                $push: { games: newGame._id }
+            }).then(() => {
+                res.status(201).json({newGame})
+            })
         }).catch(err => {
             console.log('Done fucked ' + err)
             res.send(err)
@@ -90,15 +99,12 @@ router.put('/game/edit/:id', (req, res) => {
         })
     })
 })
-    // name: String,
-    // users:  [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     // characters:  [{type: mongoose.Schema.Types.ObjectId, ref: 'Character'}],
-    // tags: [String],
-    // gm:  {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     // ships: [{type: mongoose.Schema.Types.ObjectId, ref: 'Ship'}]
 
 // Route to delete game
 router.delete('/game/delete/:id', (req, res) => {
+
     Game.findByIdAndDelete(req.params.id)
 })
     // Find by ID

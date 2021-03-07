@@ -34,7 +34,7 @@ const createUserToken = (req, user) => {
         throw err
     } else { 
         const payload = {
-            id: user._id,
+            _id: user._id,
             email: user.email,
             name:user.name
         }
@@ -44,7 +44,7 @@ const createUserToken = (req, user) => {
 
 const updateUserToken = (user) => {
     const payload = {
-        id: user._id,
+        _id: user._id,
         email: user.email,
         name:user.name
     }
