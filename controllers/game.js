@@ -1,7 +1,9 @@
 const Game = require('../models/Game')
 const Character = require('../models/Character')
 const User = require('../models/User')
+const { requireToken } = require('../middleware/auth')
 const express = require('express')
+const Message = require('../models/Message')
 const router = express.Router()
 
 // Route to get all games
@@ -14,7 +16,7 @@ router.get('/all', (req, res) => {
 })
 
 // Route to get one game
-router.get('/game/:id', (req, res) => {
+router.get('/game/:id', requireToken, (req, res) => {
     Game.findById(req.params.id)
     .then(game => {
         console.log('Showing game ' + req.params.id)
@@ -23,7 +25,7 @@ router.get('/game/:id', (req, res) => {
 })
 
 // Route to create new game
-router.post('/new', async (req, res) => {
+router.post('/new', requireToken, (req, res) => {
 
     console.log('Hit new game route')
     console.log(req.body)
@@ -57,7 +59,10 @@ router.post('/new', async (req, res) => {
             User.updateMany({email: {$in: userEmails}}, {
                 $push: { games: newGame._id }
             }).then(() => {
-                res.status(201).json({newGame})
+
+                Game.find({}).then(gamesData => {
+                    res.status(201).json({gamesData, newGame})
+                })
             })
         }).catch(err => {
             console.log('Done fucked ' + err)
@@ -67,7 +72,7 @@ router.post('/new', async (req, res) => {
 })
 
 // Route to edit game
-router.put('/game/edit/:id', (req, res) => {
+router.put('/game/edit/:id', requireToken, (req, res) => {
 
     console.log('Hit update game route')
     console.log(req.body)
@@ -103,9 +108,31 @@ router.put('/game/edit/:id', (req, res) => {
     // ships: [{type: mongoose.Schema.Types.ObjectId, ref: 'Ship'}]
 
 // Route to delete game
-router.delete('/game/delete/:id', (req, res) => {
-
-    Game.findByIdAndDelete(req.params.id)
+router.delete('/delete/:id', requireToken, (req, res) => {
+    console.log('Delete route for game')
+    Game.findById(req.params.id).populate('users')
+    .then(foundGame => {
+        User.update(
+            { games: foundGame._id },
+            { $pull: { 
+                games: foundGame._id,  
+                characters: { $in: foundGame.characters },
+                messages: { $in: foundGame.messages }
+            }},
+            { multi: true }
+        ).then(() => {
+            Message.deleteMany({ gameId: foundGame._id })
+            .then(() => {
+                Character.deleteMany({ gameId: foundGame._id })
+                .then(() => {
+                    Game.findByIdAndDelete(foundGame._id)
+                    .then(() => {
+                        console.log('Successfully deleted game')
+                    })
+                })
+            })
+        })
+    })
 })
     // Find by ID
     // Delete

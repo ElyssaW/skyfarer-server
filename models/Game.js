@@ -5,6 +5,7 @@ const gameSchema = new mongoose.Schema({
     desc: String,
     users:  [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     characters:  [{type: mongoose.Schema.Types.ObjectId, ref: 'Character'}],
+    messages:  [{type: mongoose.Schema.Types.ObjectId, ref: 'Message'}],
     tags: [String],
     gm:  {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     ships: [{type: mongoose.Schema.Types.ObjectId, ref: 'Ship'}],

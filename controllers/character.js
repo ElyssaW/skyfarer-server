@@ -1,5 +1,6 @@
 const Character = require('../models/Character')
 const express = require('express')
+const { requireToken } = require('../middleware/auth')
 const User = require('../models/User')
 const Game = require('../models/Game')
 const router = express.Router()
@@ -21,7 +22,7 @@ router.get('/view/:id', (req, res) => {
     // Send characters
 
 // Route to create character
-router.post('/new', (req, res) => {
+router.post('/new', requireToken, (req, res) => {
     console.log('New character route hit')
     console.log(req.body)
 
@@ -58,7 +59,7 @@ router.post('/new', (req, res) => {
 })
 
 // Route to update character
-router.put('/edit/:id', (req, res) => {
+router.put('/edit/:id', requireToken, (req, res) => {
     console.log('Updating character')
     console.log(req.body)
 
@@ -82,7 +83,7 @@ router.put('/edit/:id', (req, res) => {
 })
 
 // Route to delete character
-router.delete('/delete/:id', (req, res) => {
+router.delete('/delete/:id', requireToken, (req, res) => {
     console.log('Deleting character')
     console.log(req.params.id)
     Character.findById(req.params.id)

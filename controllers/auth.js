@@ -41,7 +41,7 @@ router.post('/signup', (req, res) => {
     .then(hashedUser => {
         User.create(hashedUser) 
         .then(createdUser => {
-            return createUserToken(req, createdUser)}) 
+            return createNewUserToken(req, createdUser)}) 
         .then(token => res.json({token})) 
         .catch(err => {
             console.log('ERROR CREATING USER', err)
