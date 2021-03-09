@@ -8,7 +8,8 @@ const User = require('../models/User')
 const Game = require('../models/Game')
 
 router.get('/data/:id', (req, res) => {
-    Game.find().then(gamesData => {
+    Game.find().populate('messages')
+    .then(gamesData => {
         User.findById(req.params.id).populate('games').populate('characters')
         .then(currentUser => {
             res.status(200).json({ gamesData, currentUser })
