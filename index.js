@@ -1,4 +1,5 @@
 const express = require('express')
+const { requireToken } = require('./middleware/auth')
 const Message = require('./models/Message')
 const Game = require('./models/Game')
 const User = require('./models/User')
@@ -14,6 +15,7 @@ const io = require('socket.io')(http, {
 
 require('dotenv').config
 const cors = require('cors')
+const Character = require('./models/Character')
 
 app.use(express.json())
 
@@ -29,24 +31,10 @@ app.use('/auth', require('./controllers/auth.js'))
 app.use('/character', require('./controllers/character.js'))
 app.use('/game', require('./controllers/game.js'))
 
-// console.log('io')
-// io.on('connection', (socket) => {
-//     console.log('Socket connected ---------- ')
-//     console.log(socket.handshake)
-//     socket.on('chat message', (msg, id) => {
-//         console.log('Message received')
-//         console.log(msg)
-//         console.log(id)
-//         io.emit('chat message', msg, id)
-//     })
-// })
-
 let users = {}
 io.on("connection", (socket) => {
   console.log("New client connected")
 
-  console.log('Game id')
-  console.log(socket.handshake.query.gameId)
   const gameId = socket.handshake.query.gameId
   const userId = socket.handshake.headers.userid
   const username = socket.handshake.headers.username
@@ -101,6 +89,31 @@ io.on("connection", (socket) => {
     console.log("Client disconnected")
     socket.leave(gameId)
     delete users[socket.handshake.headers.userid]
+  })
+})
+
+// Route to delete character
+app.delete('/message/delete/:id', requireToken, (req, res) => {
+  console.log('Deleting message')
+  console.log(req.params.id)
+  Message.findById(req.params.id)
+  .then(foundMessage => {
+
+      if (foundMessage.characterId) {
+        Character.findByIdAndUpdate(foundMessage.characterId, {
+          '$pull': { messages: foundMessage._id }
+        })
+      }
+
+      User.findByIdAndUpdate(foundMessage.userId, {
+          '$pull': { messages: foundMessage._id }
+      }).then(() => {
+
+          Message.findByIdAndDelete(foundMessage._id)
+          .then(() => {
+              res.status(200).json('Deleted successfully')
+          })
+      })
   })
 })
 
