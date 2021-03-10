@@ -1,5 +1,4 @@
 const Game = require('../models/Game')
-const Character = require('../models/Character')
 const User = require('../models/User')
 const { requireToken } = require('../middleware/auth')
 const express = require('express')
@@ -31,8 +30,12 @@ router.post('/new', requireToken, (req, res) => {
     console.log(req.body)
 
     // Standardize tags and split into array
-    let tags = req.body.tags.replace(/\s+/g, '').toLowerCase()
-    tags = tags.split(',')
+    let tags = req.body.tags.split(',')
+    tags = tags.map(tag => {
+        if (tag && tag.trim() != '') {
+            return tag.trim().toLowerCase()
+        }
+    })
 
     // Standardize emails and split into array
     let userEmails = req.body.users.replace(/\s+/g, '').toLowerCase()
@@ -123,12 +126,9 @@ router.delete('/delete/:id', requireToken, (req, res) => {
         ).then(() => {
             Message.deleteMany({ gameId: foundGame._id })
             .then(() => {
-                Character.deleteMany({ gameId: foundGame._id })
+                Game.findByIdAndDelete(foundGame._id)
                 .then(() => {
-                    Game.findByIdAndDelete(foundGame._id)
-                    .then(() => {
-                        console.log('Successfully deleted game')
-                    })
+                    console.log('Successfully deleted game')
                 })
             })
         })

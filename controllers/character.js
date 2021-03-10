@@ -2,7 +2,6 @@ const Character = require('../models/Character')
 const express = require('express')
 const { requireToken } = require('../middleware/auth')
 const User = require('../models/User')
-const Game = require('../models/Game')
 const router = express.Router()
 
 // Route to view character
@@ -16,10 +15,6 @@ router.get('/view/:id', (req, res) => {
         res.status(200).json(foundChar)
     })
 })
-
-// Route to view several characters
-    // Find characters by id in [array]
-    // Send characters
 
 // Route to create character
 router.post('/new', requireToken, (req, res) => {
@@ -37,20 +32,15 @@ router.post('/new', requireToken, (req, res) => {
         integrities: req.body.integrities,
         publicNotes: req.body.publicNotes,
         privateNotes: req.body.privateNotes,
-        userId: req.body.userId,
-        gameId: [req.body.gameId]
+        userId: req.body.userId
     }).then(newCharacter => {
-        Game.findByIdAndUpdate(req.body.gameId, {
+        User.findByIdAndUpdate(req.body.userId, {
             $push: { characters: newCharacter.id }
-        }).then(game => {
-            User.findByIdAndUpdate(req.body.userId, {
-                $push: { characters: newCharacter.id }
-            }).populate('games').populate('characters')
-            .then((updatedUser) => {
-                console.log('New character created')
-                console.log(newCharacter)
-                res.status(201).json({ newCharacter: newCharacter, updatedUser: updatedUser })
-            })
+        }).populate('games').populate('characters')
+        .then((updatedUser) => {
+            console.log('New character created')
+            console.log(newCharacter)
+            res.status(201).json({ newCharacter: newCharacter, updatedUser: updatedUser })
         })
     }).catch(err => {
         console.log('Error creating character: ' + err)
@@ -73,8 +63,7 @@ router.put('/edit/:id', requireToken, (req, res) => {
         mirrors: req.body.mirrors,
         integrities: req.body.integrities,
         publicNotes: req.body.publicNotes,
-        privateNotes: req.body.privateNotes,
-        gameId: [req.body.gameId]
+        privateNotes: req.body.privateNotes
     }).then(updatedCharacter => {
         console.log('Character updated')
         console.log(updatedCharacter)
@@ -89,18 +78,13 @@ router.delete('/delete/:id', requireToken, (req, res) => {
     Character.findById(req.params.id)
     .then(foundCharacter => {
 
-        Game.findByIdAndUpdate(foundCharacter.gameId, {
+        User.findByIdAndUpdate(foundCharacter.userId, {
             '$pull': { characters: foundCharacter.id }
         }).then(() => {
 
-            User.findByIdAndUpdate(foundCharacter.userId, {
-                '$pull': { characters: foundCharacter.id }
-            }).then(() => {
-
-                Character.findByIdAndDelete(foundCharacter._id)
-                .then(() => {
-                    res.status(200).json('Deleted successfully')
-                })
+            Character.findByIdAndDelete(foundCharacter._id)
+            .then(() => {
+                res.status(200).json('Deleted successfully')
             })
         })
     })

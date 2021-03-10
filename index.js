@@ -49,6 +49,7 @@ io.on("connection", (socket) => {
   console.log(socket.handshake.query.gameId)
   const gameId = socket.handshake.query.gameId
   const userId = socket.handshake.headers.userid
+  const username = socket.handshake.headers.username
   users[socket.handshake.headers.userid] = socket.id
 
   socket.join(gameId)
@@ -57,9 +58,25 @@ io.on("connection", (socket) => {
     console.log('Message sent')
     console.log(msg)
 
+    let rolls = msg.rolls ? msg.rolls.map(command => {
+      return {
+        roll: Math.random() * (10 - 1) + 1,
+        type: command,
+        secondRoll: false,
+        plus: null,
+        minus: null
+      }
+    }) : null
+
     Message.create({
       body: msg.body,
+      rolls: rolls,
+      gmOnly: msg.commands && msg.commands.includes('!gm') ? true : false,
+      ooc: msg.commands && msg.commands.includes('!ooc') ? true : false,
+      characterId: null,
+      characterName: null,
       userId: userId,
+      username: username,
       gameId: gameId
     }).then(newMsg => {
       Game.findByIdAndUpdate(gameId, {
@@ -68,7 +85,9 @@ io.on("connection", (socket) => {
         User.findByIdAndUpdate(userId, {
           $push: { messages: newMsg._id }
         }).then(() => {
-          io.in(gameId).emit('newChatMessage', msg)
+
+          io.in(gameId).emit('newChatMessage', newMsg)
+
         })
       })
     }).catch(err => {
