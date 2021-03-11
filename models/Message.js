@@ -1,20 +1,17 @@
 const mongoose=require('../db/connection')
 
-const rollModSchema = new mongoose.Schema({
-    desc: String
-})
-
-const rollSchema = new mongoose.Schema({
-    roll: Number,
-    type: String,
-    secondRoll: Boolean,
-    plus: [{rollModSchema}],
-    minus: [{rollModSchema}],
-})
-
 const messageSchema = new mongoose.Schema({
     body: String,
-    rolls: [{rollSchema}],
+    rolls: [
+        {
+            roll: Number,
+            bonus: Number,
+            stat: String,
+            secondRoll: Boolean,
+            plus: [{desc: String}],
+            minus: [{desc: String}]
+        }
+    ],
     gmOnly: Boolean,
     ooc: Boolean,
     characterId: {type: mongoose.Schema.Types.ObjectId, ref: 'Character'},

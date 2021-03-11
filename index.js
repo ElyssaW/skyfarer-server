@@ -46,13 +46,29 @@ io.on("connection", (socket) => {
     console.log('Message sent')
     console.log(msg)
 
+    let character = msg.character
+
     let rolls = msg.rolls ? msg.rolls.map(command => {
+      let stat = command.replace(/!/g, '')
+
+      let bonus
+      if (stat.includes('veil')) {
+        bonus = character.veils
+      } else if (stat.includes('mirror')) {
+        bonus = character.mirrors
+      } else if (stat.includes('heart')) {
+        bonus = character.hearts
+      } else if (stat.includes('iron')) {
+        bonus = character.irons
+      }
+
       return {
-        roll: Math.random() * (10 - 1) + 1,
-        type: command,
+        roll: Math.floor(Math.random() * (10 - 1) + 1),
+        bonus: bonus,
+        stat: stat,
         secondRoll: false,
-        plus: null,
-        minus: null
+        plus: [],
+        minus: []
       }
     }) : null
 
@@ -61,11 +77,11 @@ io.on("connection", (socket) => {
       rolls: rolls,
       gmOnly: msg.commands && msg.commands.includes('!gm') ? true : false,
       ooc: msg.commands && msg.commands.includes('!ooc') ? true : false,
-      characterId: null,
-      characterName: null,
-      userId: userId,
+      characterId: character ? character._id : null,
+      characterName: character ? character.name : null,
+      userId: userId.trim(),
       username: username,
-      gameId: gameId
+      gameId: gameId.trim()
     }).then(newMsg => {
       Game.findByIdAndUpdate(gameId, {
         $push: { messages: newMsg._id }
@@ -73,7 +89,7 @@ io.on("connection", (socket) => {
         User.findByIdAndUpdate(userId, {
           $push: { messages: newMsg._id }
         }).then(() => {
-
+          console.log(newMsg)
           io.in(gameId).emit('newChatMessage', newMsg)
 
         })
