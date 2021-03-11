@@ -29,25 +29,25 @@ const router = express.Router()
     // Send all
 
 // Route to write new message
-router.post('/message/new', (req, res) => {
-    Message.create({
-        content: req.body.content,
-        rollBase: req.body.rollBase,
-        rollSecond: req.body.rollSecond,
-        rollPlus: req.body.rollPlus,
-        rollMinus: req.body.rollMinus,
-        tenacityRoll: req.body.tenacityRoll,
-        perilRoll: req.body.perilRoll,
-        private: req.body.private,
-        characterId: req.body.characterId,
-        gameId: req.body.gameId,
-        userId: req.body.userId,
-        endUserId: req.body.endUserId
-    }).then(newMessage => {
-        console.log('New message......')
-        console.log(newMessage)
-    })
-})
+// router.post('/message/new', (req, res) => {
+//     Message.create({
+//         content: req.body.content,
+//         rollBase: req.body.rollBase,
+//         rollSecond: req.body.rollSecond,
+//         rollPlus: req.body.rollPlus,
+//         rollMinus: req.body.rollMinus,
+//         tenacityRoll: req.body.tenacityRoll,
+//         perilRoll: req.body.perilRoll,
+//         private: req.body.private,
+//         characterId: req.body.characterId,
+//         gameId: req.body.gameId,
+//         userId: req.body.userId,
+//         endUserId: req.body.endUserId
+//     }).then(newMessage => {
+//         console.log('New message......')
+//         console.log(newMessage)
+//     })
+// })
     // content: String,
     // rollBase: Number,
     // rollSecond: Number,
@@ -62,25 +62,25 @@ router.post('/message/new', (req, res) => {
     // endUserId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
 
 // Route to edit message
-router.put('/message/edit/:id', (req, res) => {
-    Message.findByIdAndUpdate(req.params.id, {
-        content: req.body.content,
-        rollBase: req.body.rollBase,
-        rollSecond: req.body.rollSecond,
-        rollPlus: req.body.rollPlus,
-        rollMinus: req.body.rollMinus,
-        tenacityRoll: req.body.tenacityRoll,
-        perilRoll: req.body.perilRoll,
-        private: req.body.private,
-        characterId: req.body.characterId,
-        gameId: req.body.gameId,
-        userId: req.body.userId,
-        endUserId: req.body.endUserId
-    }).then(updatedMessage => {
-        console.log('Updated message......')
-        console.log(updatedMessage)
-    })
-})
+// router.put('/message/edit/:id', (req, res) => {
+//     Message.findByIdAndUpdate(req.params.id, {
+//         content: req.body.content,
+//         rollBase: req.body.rollBase,
+//         rollSecond: req.body.rollSecond,
+//         rollPlus: req.body.rollPlus,
+//         rollMinus: req.body.rollMinus,
+//         tenacityRoll: req.body.tenacityRoll,
+//         perilRoll: req.body.perilRoll,
+//         private: req.body.private,
+//         characterId: req.body.characterId,
+//         gameId: req.body.gameId,
+//         userId: req.body.userId,
+//         endUserId: req.body.endUserId
+//     }).then(updatedMessage => {
+//         console.log('Updated message......')
+//         console.log(updatedMessage)
+//     })
+// })
     // content: String,
     // rollBase: Number,
     // rollSecond: Number,

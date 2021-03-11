@@ -42,6 +42,10 @@ io.on("connection", (socket) => {
 
   socket.join(gameId)
 
+  socket.on('updateGameState', (gameState) => {
+    io.in(gameId).emit('updateGameState', gameState)
+  })
+
   socket.on('newChatMessage', (msg) => {
     console.log('Message sent')
     console.log(msg)
@@ -49,34 +53,61 @@ io.on("connection", (socket) => {
     let character = msg.character
 
     let rolls = msg.rolls ? msg.rolls.map(command => {
-      let stat = command.replace(/!/g, '')
+      if (command != '!gm' && command != '!ooc') {
+        let stat = command.replace(/!/g, '')
 
-      let bonus
-      if (stat.includes('veil')) {
-        bonus = character.veils
-      } else if (stat.includes('mirror')) {
-        bonus = character.mirrors
-      } else if (stat.includes('heart')) {
-        bonus = character.hearts
-      } else if (stat.includes('iron')) {
-        bonus = character.irons
-      }
+        let bonus
+        let roll
+        if (
+          stat.includes('veil') || stat.includes('mirror') ||
+          stat.includes('heart') || stat.includes('iron')
+        ) {
+          roll = Math.floor(Math.random() * (10 - 1) + 1)
+          if (stat.includes('veil')) {
+            bonus = character.veils
+          } else if (stat.includes('mirror')) {
+            bonus = character.mirrors
+          } else if (stat.includes('heart')) {
+            bonus = character.hearts
+          } else if (stat.includes('iron')) {
+            bonus = character.irons
+          }
+        }
+  
+        if (stat.includes('peril') || stat.includes('tenacity')) {
+          if (stat.includes('peril3') || stat.includes('tenacity3')) {
+            roll = Math.floor(Math.random() * (3 - 1) + 1)
+          } else if (stat.includes('peril6') || stat.includes('tenacity6')) {
+            roll = Math.floor(Math.random() * (6 - 1) + 1)
+          } else {
+            roll = 1
+          }
+  
+          if (stat.includes('peril')) {
+            character.peril = character.peril + roll
+          } else if (stat.includes('peril')) {
+            character.tenacity = character.tenacity + roll < character.maxTenacity ? character.tenacity + roll : character.maxTenacity
+          }
 
-      return {
-        roll: Math.floor(Math.random() * (10 - 1) + 1),
-        bonus: bonus,
-        stat: stat,
-        secondRoll: false,
-        plus: [],
-        minus: []
+          stat = stat.replace(/!|1|3|6/g, '')
+        }
+  
+        return {
+          roll: roll,
+          bonus: bonus || bonus === 0 ? bonus : null,
+          stat: stat,
+          secondRoll: false,
+          plus: [],
+          minus: []
+        }
       }
     }) : null
 
     Message.create({
       body: msg.body,
       rolls: rolls,
-      gmOnly: msg.commands && msg.commands.includes('!gm') ? true : false,
-      ooc: msg.commands && msg.commands.includes('!ooc') ? true : false,
+      gmOnly: msg.rolls && msg.rolls.includes('!gm') ? true : false,
+      ooc: msg.rolls && msg.rolls.includes('!ooc') ? true : false,
       characterId: character ? character._id : null,
       characterName: character ? character.name : null,
       userId: userId.trim(),
@@ -89,9 +120,12 @@ io.on("connection", (socket) => {
         User.findByIdAndUpdate(userId, {
           $push: { messages: newMsg._id }
         }).then(() => {
-          console.log(newMsg)
-          io.in(gameId).emit('newChatMessage', newMsg)
-
+          character.messages.push(newMsg._id)
+          Character.findByIdAndUpdate(character._id, character)
+          .then(updatedCharacter => {
+            console.log(newMsg)
+            io.in(gameId).emit('newChatMessage', newMsg, updatedCharacter)
+          })
         })
       })
     }).catch(err => {
@@ -108,7 +142,19 @@ io.on("connection", (socket) => {
   })
 })
 
-// Route to delete character
+// Route to edit message
+app.put('/message/edit/:id', requireToken, (req, res) => {
+  console.log('Editing message')
+  console.log(req.body)
+  let editedMsg = req.body
+
+  Message.findByIdAndUpdate(req.params.id, editedMsg)
+  .then(updatedMsg => {
+    res.status(200).json('Edited successfully')
+  })
+})
+
+// Route to delete message
 app.delete('/message/delete/:id', requireToken, (req, res) => {
   console.log('Deleting message')
   console.log(req.params.id)
