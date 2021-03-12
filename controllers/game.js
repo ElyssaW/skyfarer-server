@@ -15,8 +15,9 @@ router.get('/all', (req, res) => {
 })
 
 // Route to get one game
-router.get('/game/:id', requireToken, (req, res) => {
-    Game.findById(req.params.id)
+router.get('/view/:id', requireToken, (req, res) => {
+    console.log('Specific game route hit')
+    Game.findById(req.params.id).populate('messages').populate('users')
     .then(game => {
         console.log('Showing game ' + req.params.id)
         res.send(game)

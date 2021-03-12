@@ -114,17 +114,18 @@ io.on("connection", (socket) => {
       username: username,
       gameId: gameId.trim()
     }).then(newMsg => {
-      Game.findByIdAndUpdate(gameId, {
-        $push: { messages: newMsg._id }
-      }).then(() => {
+      character.messages.push(newMsg._id)
+      Character.findByIdAndUpdate(character._id, character)
+      .then(updatedCharacter => {
         User.findByIdAndUpdate(userId, {
           $push: { messages: newMsg._id }
         }).then(() => {
-          character.messages.push(newMsg._id)
-          Character.findByIdAndUpdate(character._id, character)
-          .then(updatedCharacter => {
+          Game.findByIdAndUpdate(gameId, {
+            $push: { messages: newMsg._id }
+          }).populate('characters').populate('messages').then(updatedGame => {
             console.log(newMsg)
-            io.in(gameId).emit('newChatMessage', newMsg, updatedCharacter)
+            updatedGame.messages.push(newMsg)
+            io.in(gameId).emit('newChatMessage', newMsg, updatedGame)
           })
         })
       })
@@ -150,7 +151,10 @@ app.put('/message/edit/:id', requireToken, (req, res) => {
 
   Message.findByIdAndUpdate(req.params.id, editedMsg)
   .then(updatedMsg => {
-    res.status(200).json('Edited successfully')
+    Message.find({ gameId: updatedMsg.gameId })
+    .then(updatedMessages => {
+      res.status(200).json({ updatedMessages })
+    })
   })
 })
 
@@ -167,15 +171,18 @@ app.delete('/message/delete/:id', requireToken, (req, res) => {
         })
       }
 
+    Game.findByIdAndUpdate(foundMessage.gameId, {
+        '$pull': { messages: foundMessage._id }
+    }).then(() => {
       User.findByIdAndUpdate(foundMessage.userId, {
-          '$pull': { messages: foundMessage._id }
+        '$pull': { messages: foundMessage._id }
       }).then(() => {
-
-          Message.findByIdAndDelete(foundMessage._id)
-          .then(() => {
-              res.status(200).json('Deleted successfully')
-          })
+        Message.findByIdAndDelete(foundMessage._id)
+        .then(() => {
+            res.status(200).json('Deleted successfully')
+        })
       })
+    })
   })
 })
 
