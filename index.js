@@ -95,6 +95,10 @@ io.on("connection", (socket) => {
           } else if (stat.includes('iron')) {
             bonus = character.irons
           }
+
+          if (character.peril > roll + bonus) {
+            character.inDanger = true
+          }
         }
   
         if (stat.includes('peril') || stat.includes('tenacity')) {
@@ -108,7 +112,7 @@ io.on("connection", (socket) => {
   
           if (stat.includes('peril')) {
             character.peril = character.peril + roll
-          } else if (stat.includes('peril')) {
+          } else if (stat.includes('tenacity')) {
             character.tenacity = character.tenacity + roll < character.maxTenacity ? character.tenacity + roll : character.maxTenacity
           }
 
@@ -207,10 +211,15 @@ io.on("connection", (socket) => {
 
   console.log('Users: ')
   console.log(users)
-  socket.on("disconnect", () => {
+  socket.on("disconnect", (disconnectedCharacter) => {
     console.log("Client disconnected")
+    console.log(disconnectedCharacter)
     socket.leave(gameId)
     delete users[socket.handshake.headers.userid]
+
+    if (disconnectedCharacter) {
+      Character.findByIdAndUpdate(disconnectedCharacter._id, disconnectedCharacter)
+    }
   })
 })
 

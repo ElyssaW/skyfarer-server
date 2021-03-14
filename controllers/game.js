@@ -20,6 +20,11 @@ router.get('/view/:id', requireToken, (req, res) => {
     Game.findById(req.params.id).populate('messages').populate('users')
     .then(game => {
         console.log('Showing game ' + req.params.id)
+
+        if (game.messages.length > 30) {
+            game.messages = game.messages.slice(game.messages.length-30)
+        }
+        
         res.send(game)
     })
 })
