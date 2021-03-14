@@ -147,8 +147,8 @@ io.on("connection", (socket) => {
             $push: { messages: newMsg._id }
           }).populate('characters').populate('messages').then(updatedGame => {
             console.log(newMsg)
-            updatedGame.messages.push(newMsg)
-            io.in(gameId).emit('newChatMessage', newMsg, updatedGame)
+
+            io.in(gameId).emit('newChatMessage', newMsg, updatedCharacter)
           })
         })
       })
