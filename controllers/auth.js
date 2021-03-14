@@ -7,23 +7,34 @@ const router = express.Router()
 const User = require('../models/User')
 const Game = require('../models/Game')
 
+router.get('/data/guest', (req, res) => {
+    Game.find({}, { _id: 1, title: 1, gm: 1 }).then(gamesData => {
+        res.send(gamesData)
+    })
+})
+
 router.get('/data/:id', (req, res) => {
-    Game.find().populate('messages')
-    .then(gamesData => {
-        User.findById(req.params.id).populate('games').populate('characters')
-        .then(currentUser => {
+    User.findById(req.params.id).populate('games').populate('characters').populate('messages')
+    .then(currentUser => {
+        Game.find({}, { _id: 1, title: 1, gm: 1 }).then(gamesData => {
             res.status(200).json({ gamesData, currentUser })
         })
     })
 })
 
 router.post('/login', (req, res) => {
-    console.log(req.body.email)
-    User.findOne( {email: req.body.email }).populate('Games').populate('Characters')
+    console.log(req.body)
+
+    User.findOne( {email: req.body.email }).populate('games').populate('characters').populate('messages')
     .then(foundUser => {
         console.log(foundUser)
         return [createUserToken(req, foundUser), foundUser]})
-    .then(([token, foundUser]) => res.status(201).json( {token, foundUser} ))
+    .then(([token, foundUser]) => {
+        console.log(foundUser)
+        Game.find({}, { _id: 1, title: 1, gm: 1 }).then(gamesData => {
+            res.status(200).json( {token, currentUser: foundUser, gamesData} )
+        })
+    })
     .catch( err => {
         console.log( 'ERROR LOGGING IN:', err )
         res.status(401).json( {message: 'Invalid login' })
@@ -31,14 +42,15 @@ router.post('/login', (req, res) => {
 })
 
 router.post('/signup', (req, res) => {
-    console.log('Creating new user')
-    console.log(req.body)
+
     bcrypt.hash(req.body.password, 10)
+
     .then(hashedPassword => ({
         email: req.body.email,
         password: hashedPassword,
         name: req.body.username
     }))
+    
     .then(hashedUser => {
         User.create(hashedUser) 
         .then(createdUser => {

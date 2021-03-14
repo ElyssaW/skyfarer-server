@@ -7,10 +7,10 @@ const router = express.Router()
 
 // Route to get all games
 router.get('/all', (req, res) => {
-    Game.find().then(games => {
+    Game.find({}, { _id: 1, name: 1, gm: 1 }).then(gamesData => {
         console.log('Showing games..')
         console.log(games)
-        res.send(games)
+        res.send(gamesData)
     })
 })
 

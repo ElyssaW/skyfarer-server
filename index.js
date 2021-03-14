@@ -43,7 +43,30 @@ io.on("connection", (socket) => {
   socket.join(gameId)
 
   socket.on('updateGameState', (gameState) => {
+    console.log('Updating game state...')
+    console.log(gameState)
+    
     io.in(gameId).emit('updateGameState', gameState)
+  })
+
+  socket.on('updateCharacter', (characterUpdate) => {
+    console.log('Updating character...')
+    console.log(characterUpdate)
+
+    Character.findByIdAndUpdate(character._id, characterUpdate).then((updateCharacter) => {
+      io.in(gameId).emit('updateCharacters', updatedCharacter)
+    })
+  })
+
+  socket.on('updateMessage', (messageUpdate) => {
+    console.log('Updating message...')
+    console.log(messageUpdate)
+
+    Message.findByIdAndUpdate(messageUpdate._id, messageUpdate).then(() => {
+      Message.find({ gameId: messageUpdate.gameId }).then((updatedMessages) => {
+        io.in(gameId).emit('updateMessages', updatedMessages)
+      })
+    })
   })
 
   socket.on('newChatMessage', (msg) => {
@@ -134,55 +157,60 @@ io.on("connection", (socket) => {
     })
   }) 
 
+  // Route to edit message
+  app.put('/message/edit/:id', requireToken, (req, res) => {
+    console.log('Editing message')
+    console.log(req.body)
+    let editedMsg = req.body
+
+    Message.findByIdAndUpdate(req.params.id, editedMsg)
+    .then(updatedMsg => {
+      Message.find({ gameId: updatedMsg.gameId })
+      .then(updatedMessages => {
+        io.in(gameId).emit('updateMessages', updatedMessages)
+        res.status(200).json({ updatedMessages })
+      })
+    })
+  })
+
+  // Route to delete message
+  app.delete('/message/delete/:id', requireToken, (req, res) => {
+    console.log('Deleting message')
+    console.log(req.params.id)
+    Message.findById(req.params.id)
+    .then(foundMessage => {
+
+        if (foundMessage.characterId) {
+          Character.findByIdAndUpdate(foundMessage.characterId, {
+            '$pull': { messages: foundMessage._id }
+          })
+        }
+
+      Game.findByIdAndUpdate(foundMessage.gameId, {
+          '$pull': { messages: foundMessage._id }
+      }).then(() => {
+        User.findByIdAndUpdate(foundMessage.userId, {
+          '$pull': { messages: foundMessage._id }
+        }).then(() => {
+          Message.findByIdAndDelete(foundMessage._id)
+          .then(() => {
+            Message.find({ gameId: foundMessage.gameId})
+            .then(updatedMessages => {
+              io.in(gameId).emit('updateMessages', updatedMessages)
+              res.status(200).json('Deleted successfully')
+            })
+          })
+        })
+      })
+    })
+  })
+
   console.log('Users: ')
   console.log(users)
   socket.on("disconnect", () => {
     console.log("Client disconnected")
     socket.leave(gameId)
     delete users[socket.handshake.headers.userid]
-  })
-})
-
-// Route to edit message
-app.put('/message/edit/:id', requireToken, (req, res) => {
-  console.log('Editing message')
-  console.log(req.body)
-  let editedMsg = req.body
-
-  Message.findByIdAndUpdate(req.params.id, editedMsg)
-  .then(updatedMsg => {
-    Message.find({ gameId: updatedMsg.gameId })
-    .then(updatedMessages => {
-      res.status(200).json({ updatedMessages })
-    })
-  })
-})
-
-// Route to delete message
-app.delete('/message/delete/:id', requireToken, (req, res) => {
-  console.log('Deleting message')
-  console.log(req.params.id)
-  Message.findById(req.params.id)
-  .then(foundMessage => {
-
-      if (foundMessage.characterId) {
-        Character.findByIdAndUpdate(foundMessage.characterId, {
-          '$pull': { messages: foundMessage._id }
-        })
-      }
-
-    Game.findByIdAndUpdate(foundMessage.gameId, {
-        '$pull': { messages: foundMessage._id }
-    }).then(() => {
-      User.findByIdAndUpdate(foundMessage.userId, {
-        '$pull': { messages: foundMessage._id }
-      }).then(() => {
-        Message.findByIdAndDelete(foundMessage._id)
-        .then(() => {
-            res.status(200).json('Deleted successfully')
-        })
-      })
-    })
   })
 })
 
