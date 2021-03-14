@@ -49,12 +49,13 @@ io.on("connection", (socket) => {
     io.in(gameId).emit('updateGameState', gameState)
   })
 
-  socket.on('updateCharacter', (characterUpdate) => {
+  socket.on('updateSingleCharacter', (characterUpdate) => {
     console.log('Updating character...')
     console.log(characterUpdate)
 
-    Character.findByIdAndUpdate(character._id, characterUpdate).then((updateCharacter) => {
-      io.in(gameId).emit('updateCharacters', updatedCharacter)
+    console.log(characterUpdate._id)
+    Character.findByIdAndUpdate(characterUpdate._id, characterUpdate).then(() => {
+      io.in(gameId).emit('updateSingleCharacter', characterUpdate)
     })
   })
 
@@ -74,6 +75,9 @@ io.on("connection", (socket) => {
     console.log(msg)
 
     let character = msg.character
+
+    console.log("Showing character before update")
+    console.log(character)
 
     let rolls = msg.rolls ? msg.rolls.map(command => {
       if (command != '!gm' && command != '!ooc') {
@@ -113,7 +117,7 @@ io.on("connection", (socket) => {
           if (stat.includes('peril')) {
             character.peril = character.peril + roll
           } else if (stat.includes('tenacity')) {
-            character.tenacity = character.tenacity + roll < character.maxTenacity ? character.tenacity + roll : character.maxTenacity
+            character.tenacity = character.tenacity + roll < character.tenacityMax ? character.tenacity + roll : character.tenacityMax
           }
 
           stat = stat.replace(/!|1|3|6/g, '')
@@ -130,6 +134,9 @@ io.on("connection", (socket) => {
       }
     }) : null
 
+    console.log("Showing character after update")
+    console.log(character)
+
     Message.create({
       body: msg.body,
       rolls: rolls,
@@ -141,18 +148,26 @@ io.on("connection", (socket) => {
       username: username,
       gameId: gameId.trim()
     }).then(newMsg => {
+
       character.messages.push(newMsg._id)
       Character.findByIdAndUpdate(character._id, character)
-      .then(updatedCharacter => {
+
+      .then(() => {
+
         User.findByIdAndUpdate(userId, {
           $push: { messages: newMsg._id }
+
         }).then(() => {
+
           Game.findByIdAndUpdate(gameId, {
             $push: { messages: newMsg._id }
-          }).populate('characters').populate('messages').then(updatedGame => {
-            console.log(newMsg)
 
-            io.in(gameId).emit('newChatMessage', newMsg, updatedCharacter)
+          }).then(() => {
+            console.log('Showing before socket emit')
+            console.log(newMsg)
+            console.log(character)
+
+            io.in(gameId).emit('newChatMessage', newMsg, character)
           })
         })
       })
@@ -211,15 +226,10 @@ io.on("connection", (socket) => {
 
   console.log('Users: ')
   console.log(users)
-  socket.on("disconnect", (disconnectedCharacter) => {
+  socket.on("disconnect", () => {
     console.log("Client disconnected")
-    console.log(disconnectedCharacter)
     socket.leave(gameId)
     delete users[socket.handshake.headers.userid]
-
-    if (disconnectedCharacter) {
-      Character.findByIdAndUpdate(disconnectedCharacter._id, disconnectedCharacter)
-    }
   })
 })
 
