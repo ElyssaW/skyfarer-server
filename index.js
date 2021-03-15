@@ -94,7 +94,7 @@ io.on("connection", (socket) => {
     console.log("Showing character before update")
     console.log(character)
 
-    let hasSecond = msg.rolls.includes('x2') ? true : false
+    let hasSecond = msg.rolls && msg.rolls.includes('x2') ? true : false
     let plus = msg.plus
     let minus = msg.minus
 
