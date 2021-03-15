@@ -7,9 +7,10 @@ const messageSchema = new mongoose.Schema({
             roll: Number,
             bonus: Number,
             stat: String,
-            secondRoll: Boolean,
-            plus: [{desc: String}],
-            minus: [{desc: String}]
+            hasSecond: Boolean,
+            secondRoll: Number,
+            plus: Number,
+            minus: Number
         }
     ],
     gmOnly: Boolean,

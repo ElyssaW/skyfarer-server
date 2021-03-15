@@ -32,13 +32,20 @@ app.use('/character', require('./controllers/character.js'))
 app.use('/game', require('./controllers/game.js'))
 
 let users = {}
+let playerCharacters = {}
 io.on("connection", (socket) => {
   console.log("New client connected")
 
   const gameId = socket.handshake.query.gameId
   const userId = socket.handshake.headers.userid
   const username = socket.handshake.headers.username
-  users[socket.handshake.headers.userid] = socket.id
+  users[socket.handshake.headers.userid] = {
+    socketId: socket.id,
+    username: username,
+    userId: userId,
+    gameId: gameId,
+    playingAs: null
+  }
 
   socket.join(gameId)
 
@@ -47,6 +54,14 @@ io.on("connection", (socket) => {
     console.log(gameState)
     
     io.in(gameId).emit('updateGameState', gameState)
+  })
+
+  socket.on('setNewPlayingAs', (playingAs, user) => {
+    users[user._id].playingAs = playingAs._id
+    io.in(gameId).emit('updateUsers', users)
+
+    playerCharacters[playingAs._id] = playingAs
+    io.in(gameId).emit('updatePlayerCharacters', playerCharacters)
   })
 
   socket.on('updateSingleCharacter', (characterUpdate) => {
@@ -79,17 +94,33 @@ io.on("connection", (socket) => {
     console.log("Showing character before update")
     console.log(character)
 
-    let rolls = msg.rolls ? msg.rolls.map(command => {
-      if (command != '!gm' && command != '!ooc') {
-        let stat = command.replace(/!/g, '')
+    let hasSecond = msg.rolls.includes('x2') ? true : false
+    let plus = msg.plus
+    let minus = msg.minus
 
+    let rolls = msg.rolls ? msg.rolls.map(command => {
+      if (command != '!gm' && command != '!ooc' &&
+          command != 'x2' && command != '-trait' &&
+          command != '+trait'
+      ) {
+
+        let stat = command.replace(/!/g, '')
         let bonus
         let roll
+        let secondRoll
+
         if (
           stat.includes('veil') || stat.includes('mirror') ||
           stat.includes('heart') || stat.includes('iron')
         ) {
+
           roll = Math.floor(Math.random() * (10 - 1) + 1)
+          if (msg.rolls.includes('x2')) {
+            hasSecond = true
+            secondRoll = Math.floor(Math.random() * (10 - 1) + 1)
+            roll = roll >= secondRoll ? roll : secondRoll
+          }
+
           if (stat.includes('veil')) {
             bonus = character.veils
           } else if (stat.includes('mirror')) {
@@ -100,7 +131,10 @@ io.on("connection", (socket) => {
             bonus = character.irons
           }
 
-          if (character.peril > roll + bonus) {
+          bonus += plus
+          bonus -= minus
+
+          if (character.peril > roll + bonus + plus - minus) {
             character.inDanger = true
           }
         }
@@ -127,9 +161,10 @@ io.on("connection", (socket) => {
           roll: roll,
           bonus: bonus || bonus === 0 ? bonus : null,
           stat: stat,
-          secondRoll: false,
-          plus: [],
-          minus: []
+          hasSecond: hasSecond,
+          secondRoll: secondRoll,
+          plus: plus,
+          minus: minus
         }
       }
     }) : null
@@ -224,12 +259,19 @@ io.on("connection", (socket) => {
     })
   })
 
-  console.log('Users: ')
-  console.log(users)
+  io.in(gameId).emit('userConnected', users)
+
   socket.on("disconnect", () => {
     console.log("Client disconnected")
     socket.leave(gameId)
-    delete users[socket.handshake.headers.userid]
+
+    if (users[userId].playingAs) {
+      delete playerCharacters[users[userId].playingAs._id]
+    }
+
+    delete users[userId]
+
+    io.in(gameId).emit('userDisconnected', users)
   })
 })
 
