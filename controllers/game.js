@@ -29,6 +29,16 @@ router.get('/view/:id', requireToken, (req, res) => {
     })
 })
 
+// Route to get one game's chat historys
+router.get('/history/:id', requireToken, (req, res) => {
+    console.log('Specific game history route hit')
+    Game.findById(req.params.id).populate('messages').populate('users')
+    .then(game => {
+        console.log('Showing game ' + req.params.id)
+        res.send(game)
+    })
+})
+
 // Route to create new game
 router.post('/new', requireToken, (req, res) => {
 
