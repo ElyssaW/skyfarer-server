@@ -264,11 +264,6 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("Client disconnected")
     socket.leave(gameId)
-
-    if (users[userId].playingAs) {
-      delete playerCharacters[users[userId].playingAs._id]
-    }
-
     delete users[userId]
 
     io.in(gameId).emit('userDisconnected', users)

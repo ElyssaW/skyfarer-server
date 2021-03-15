@@ -8,6 +8,10 @@ const integritySchema = new mongoose.Schema({
     desc: String
 })
 
+const conditionSchema = new mongoose.Schema({
+    desc: String
+})
+
 const characterSchema = new mongoose.Schema({
     name: String,
     traits: [traitSchema],
@@ -32,7 +36,7 @@ const characterSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    condition: String,
+    condition: [conditionSchema],
     integrities: [integritySchema],
     publicNotes: String,
     privateNotes: String,
