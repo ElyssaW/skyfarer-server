@@ -60,17 +60,23 @@ router.post('/new', requireToken, (req, res) => {
     // all following operations
     userEmails.push(req.body.currentUser.email)
 
-    // Find users by email, and return ID only
+    // Find users by email
     User.find({
         email: {$in: userEmails}
-    }, { _id: 1 }).then(foundUsers => {
+    }).then(foundUsers => {
+
+        let userIds = foundUsers.map(user => {
+            if (user) {
+                return user._id
+            }
+        })
 
         // Populate game object
         Game.create({
             title: req.body.title,
             desc: req.body.desc,
             tags: tags,
-            users: foundUsers,
+            users: userIds,
             gm: req.body.currentUser._id
         }).then(newGame => {
 
@@ -78,10 +84,7 @@ router.post('/new', requireToken, (req, res) => {
             User.updateMany({email: {$in: userEmails}}, {
                 $push: { games: newGame._id }
             }).then(() => {
-
-                Game.find({}).then(gamesData => {
-                    res.status(201).json({gamesData, newGame})
-                })
+                res.status(201).json({newGame})
             })
         }).catch(err => {
             console.log('Done fucked ' + err)

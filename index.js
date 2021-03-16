@@ -90,10 +90,6 @@ io.on("connection", (socket) => {
     console.log(msg)
 
     let character = msg.character
-
-    console.log("Showing character before update")
-    console.log(character)
-
     let hasSecond = msg.rolls && msg.rolls.includes('x2') ? true : false
     let plus = msg.plus
     let minus = msg.minus
@@ -169,9 +165,6 @@ io.on("connection", (socket) => {
       }
     }) : null
 
-    console.log("Showing character after update")
-    console.log(character)
-
     Message.create({
       body: msg.body,
       rolls: rolls,
@@ -184,26 +177,24 @@ io.on("connection", (socket) => {
       gameId: gameId.trim()
     }).then(newMsg => {
 
-      character.messages.push(newMsg._id)
-      Character.findByIdAndUpdate(character._id, character)
+      if (character) {
+        character.messages.push(newMsg._id)
+        Character.findByIdAndUpdate(character._id, character)
+      }
 
-      .then(() => {
+      User.findByIdAndUpdate(userId, {
+        $push: { messages: newMsg._id }
+      }).then(() => {
 
-        User.findByIdAndUpdate(userId, {
+        Game.findByIdAndUpdate(gameId, {
           $push: { messages: newMsg._id }
 
         }).then(() => {
+          console.log('Showing before socket emit')
+          console.log(newMsg)
+          console.log(character)
 
-          Game.findByIdAndUpdate(gameId, {
-            $push: { messages: newMsg._id }
-
-          }).then(() => {
-            console.log('Showing before socket emit')
-            console.log(newMsg)
-            console.log(character)
-
-            io.in(gameId).emit('newChatMessage', newMsg, character)
-          })
+          io.in(gameId).emit('newChatMessage', newMsg, character)
         })
       })
     }).catch(err => {
@@ -234,6 +225,8 @@ io.on("connection", (socket) => {
     Message.findById(req.params.id)
     .then(foundMessage => {
 
+      console.log(foundMessage)
+
         if (foundMessage.characterId) {
           Character.findByIdAndUpdate(foundMessage.characterId, {
             '$pull': { messages: foundMessage._id }
@@ -250,6 +243,7 @@ io.on("connection", (socket) => {
           .then(() => {
             Message.find({ gameId: foundMessage.gameId})
             .then(updatedMessages => {
+              console.log('Deleted succesfully')
               io.in(gameId).emit('updateMessages', updatedMessages)
               res.status(200).json('Deleted successfully')
             })
