@@ -93,41 +93,23 @@ router.post('/new', requireToken, (req, res) => {
     })
 })
 
-// Route to edit game
-router.put('/game/edit/:id', requireToken, (req, res) => {
+router.put('/addUser/:id', (req, res) => {
+    console.log('Adding user to game...')
+    console.log(req.params.id)
 
-    console.log('Hit update game route')
-    console.log(req.body)
+    const user = req.body.user
 
-    // Standardize tags and split into array
-    let tags = req.body.tags.replace(/\s+/g, '').toLowerCase()
-    tags = tags.split(',')
-    
-    // Standardize emails and split into array
-    let userEmails = req.body.users.replace(/\s+/g, '').toLowerCase()
-    userEmails = userEmails.split(',')
-    
-    // Find users by email, and return ID only
-    User.find({
-        email: {$in: userEmails}
-    }, { _id: 1 }).then(foundUsers => {
-        Game.findByIdAndUpdate(req.params.id, {
-            title: req.body.title,
-            desc: req.body.desc,
-            tags: tags,
-            users: foundUsers,
-            gm: req.body.currentUser.id
-        }).then(game => {
-            console.log(game)
-            res.send(game)
-        }).catch(err => {
-            console.log(err)
-            res.send(err)
+    Game.findByIdAndUpdate(req.params.id, {
+        $push: { users: user._id }
+    }).then(() => {
+        User.findByIdAndUpdate(user._id, {
+            $push: { games: req.params.id }
+        }).then(() => {
+            console.log('User added!')
+            res.status(200).send('User added!')
         })
     })
 })
-    // characters:  [{type: mongoose.Schema.Types.ObjectId, ref: 'Character'}],
-    // ships: [{type: mongoose.Schema.Types.ObjectId, ref: 'Ship'}]
 
 // Route to delete game
 router.delete('/delete/:id', requireToken, (req, res) => {
