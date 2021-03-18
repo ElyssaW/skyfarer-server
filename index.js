@@ -212,6 +212,7 @@ io.on("connection", (socket) => {
     .then(updatedMsg => {
       Message.find({ gameId: updatedMsg.gameId })
       .then(updatedMessages => {
+        console.log('Edit successful')
         io.in(gameId).emit('updateMessages', updatedMessages)
         res.status(200).json({ updatedMessages })
       })
