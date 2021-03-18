@@ -67,7 +67,7 @@ router.put('/edit/:id', requireToken, (req, res) => {
     }).then(updatedCharacter => {
         console.log('Character updated')
         console.log(updatedCharacter)
-        res.send(201).json(updatedCharacter)
+        res.status(201).json(updatedCharacter)
     })
 })
 

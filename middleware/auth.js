@@ -52,7 +52,7 @@ const createUserToken = (req, user) => {
             email: user.email,
             name: user.name
         }
-        return jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: 3600})
+        return jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: 273600})
     }
 }
 
